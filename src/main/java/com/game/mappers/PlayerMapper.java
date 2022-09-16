@@ -23,6 +23,7 @@ public class PlayerMapper {
         playerDto.setExperience(entity.getExperience());
         playerDto.setLevel(entity.getLevel());
         playerDto.setUntilNextLevel(entity.getUntilNextLevel());
+        playerDto.setTitle(entity.getTitle());
 
         return playerDto;
     }
@@ -45,6 +46,7 @@ public class PlayerMapper {
         playerEntity.setBirthday(playerDto.getBirthday());
         playerEntity.setBanned(playerDto.isBanned());
         playerEntity.setExperience(playerDto.getExperience());
+        playerEntity.setTitle(playerEntity.getTitle());
 
         return playerEntity;
     }
