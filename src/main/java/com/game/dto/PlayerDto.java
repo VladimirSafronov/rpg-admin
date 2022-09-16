@@ -15,6 +15,7 @@ public class PlayerDto {
     private Integer experience;
     private Integer level;
     private Integer untilNextLevel;
+    private String title;
 
     public PlayerDto() {
         // do nothing
@@ -103,5 +104,28 @@ public class PlayerDto {
 
     public void setUntilNextLevel(Integer untilNextLevel) {
         this.untilNextLevel = untilNextLevel;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    @Override
+    public String toString() {
+        return "PlayerDto{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", race=" + race +
+                ", profession=" + profession +
+                ", birthday=" + birthday +
+                ", banned=" + banned +
+                ", experience=" + experience +
+                ", level=" + level +
+                ", untilNextLevel=" + untilNextLevel +
+                '}';
     }
 }

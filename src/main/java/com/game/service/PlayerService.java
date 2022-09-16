@@ -38,12 +38,14 @@ public class PlayerService {
 
     @Transactional
     public PlayerDto changePlayer(PlayerDto playerDtoWithNewData) {
+        System.out.println("Запрос на изменение игрока. Данные из запроса: " + playerDtoWithNewData);
         // Получаем старые данные по игроку
         PlayerEntity sourcePlayerEntity = playerRepository.getOne(playerDtoWithNewData.getId());
         // Готовим новую сущность по игроку
         PlayerEntity playerEntityWithNewData = playerMapper.mapDtoToEntity(playerDtoWithNewData);
         playerEntityWithNewData.setLevel(sourcePlayerEntity.getLevel());
         playerEntityWithNewData.setUntilNextLevel(sourcePlayerEntity.getUntilNextLevel());
+        System.out.println("Обновленная сущность игрока: " + playerEntityWithNewData);
         // Сохраняем и возвращаем
         PlayerEntity updatedPlayerEntity = playerRepository.save(playerEntityWithNewData);
         return playerMapper.mapEntityToDto(updatedPlayerEntity);
