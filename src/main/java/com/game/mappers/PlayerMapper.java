@@ -36,18 +36,23 @@ public class PlayerMapper {
         return players;
     }
 
-    public PlayerEntity mapDtoToEntity(PlayerDto playerDto) {
+    public PlayerEntity mapDtoToNewEntity(PlayerDto playerDto) {
         PlayerEntity playerEntity = new PlayerEntity();
-
-        playerEntity.setId(playerDto.getId());
-        playerEntity.setName(playerDto.getName());
-        playerEntity.setRace(playerDto.getRace());
-        playerEntity.setProfession(playerDto.getProfession());
-        playerEntity.setBirthday(playerDto.getBirthday());
-        playerEntity.setBanned(playerDto.isBanned());
-        playerEntity.setExperience(playerDto.getExperience());
-        playerEntity.setTitle(playerEntity.getTitle());
-
+        mapDtoToEntity(playerDto, playerEntity);
         return playerEntity;
+    }
+
+    public void mapDtoToSourceEntity(PlayerDto playerDto, PlayerEntity sourceEntity) {
+        mapDtoToEntity(playerDto, sourceEntity);
+    }
+
+    private void mapDtoToEntity(PlayerDto playerDto, PlayerEntity sourceEntity) {
+        sourceEntity.setName(playerDto.getName());
+        sourceEntity.setTitle(playerDto.getTitle());
+        sourceEntity.setRace(playerDto.getRace());
+        sourceEntity.setProfession(playerDto.getProfession());
+        sourceEntity.setExperience(playerDto.getExperience());
+        sourceEntity.setBirthday(playerDto.getBirthday());
+        sourceEntity.setBanned(playerDto.isBanned());
     }
 }
