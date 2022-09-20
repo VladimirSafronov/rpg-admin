@@ -1,19 +1,24 @@
 package com.game.controller;
 
 import com.game.dto.PlayerDto;
+import com.game.entity.Profession;
 import com.game.entity.Race;
 import com.game.service.PlayerService;
-import java.security.spec.ECField;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping(value = "/rest/players")
@@ -66,8 +71,12 @@ public class PlayersController {
             playerDtos.sort(sortByBirthday());
             break;
           }
-          default: {
-            playerDtos.sort(sortById());
+          case EXPERIENCE: {
+            playerDtos.sort(sortByExperience());
+            break;
+          }
+          case LEVEL: {
+            playerDtos.sort(sortByLevel());
             break;
           }
         }
@@ -98,6 +107,18 @@ public class PlayersController {
     };
   }
 
+  private Comparator<PlayerDto> sortByExperience() {
+    return (player1, player2) -> {
+      return Integer.compare(player1.getExperience(), player2.getExperience());
+    };
+  }
+
+  private Comparator<PlayerDto> sortByLevel() {
+    return (player1, player2) -> {
+      return Integer.compare(player1.getLevel(), player2.getLevel());
+    };
+  }
+
   private PlayerFilter createFilter(Map<String, String> queryParams) {
     PlayerFilter filter = new PlayerFilter();
     filter.setName(queryParams.get(PlayerFilter.NAME));
@@ -106,7 +127,24 @@ public class PlayersController {
     filter.setBirthdayAfter(getLong(queryParams.get(PlayerFilter.BIRTHDAY_AFTER)));
     filter.setBirthdayBefore(getLong(queryParams.get(PlayerFilter.BIRTHDAY_BEFORE)));
     filter.setRace(getRaceFilter(queryParams.get(PlayerFilter.RACE)));
+    filter.setProfession(getProfessionFilter(queryParams.get(PlayerFilter.PROFESSION)));
+    filter.setExperienceAfter(getInteger(queryParams.get(PlayerFilter.EXPERIENCE_AFTER)));
+    filter.setExperienceBefore(getInteger(queryParams.get(PlayerFilter.EXPERIENCE_BEFORE)));
+    filter.setLevelAfter(getInteger(queryParams.get(PlayerFilter.LEVEL_AFTER)));
+    filter.setLevelBefore(getInteger(queryParams.get(PlayerFilter.LEVEL_BEFORE)));
     return filter;
+  }
+
+  private Profession getProfessionFilter(String professionFilter) {
+    if (professionFilter == null) {
+      return null;
+    } else {
+      try {
+        return Profession.valueOf(professionFilter);
+      } catch (Exception e) {
+        return null;
+      }
+    }
   }
 
   private Race getRaceFilter(String raceFilter) {
@@ -120,6 +158,7 @@ public class PlayersController {
       }
     }
   }
+
   private Boolean getIsBannedFilter(String filterParam) {
     if (filterParam == null) {
       return null;
@@ -136,6 +175,14 @@ public class PlayersController {
     }
   }
 
+  private Integer getInteger(String value) {
+    if (value == null) {
+      return null;
+    } else {
+      return Integer.parseInt(value);
+    }
+  }
+
   private List<PlayerDto> filterPlayers(PlayerFilter filter, List<PlayerDto> players) {
     return players.stream()
         .filter(byName(filter))
@@ -143,6 +190,9 @@ public class PlayersController {
         .filter(byBanned(filter))
         .filter(byBirthday(filter))
         .filter(byRace(filter))
+        .filter(byProfession(filter))
+        .filter(byExperience(filter))
+        .filter(byLevel(filter))
         .collect(Collectors.toList());
   }
 
@@ -162,6 +212,16 @@ public class PlayersController {
         return true;
       } else {
         return playerDto.getTitle().toLowerCase().contains(filter.getTitle().toLowerCase());
+      }
+    };
+  }
+
+  private Predicate<PlayerDto> byProfession(PlayerFilter filter) {
+    return playerDto -> {
+      if (filter.getProfession() == null) {
+        return true;
+      } else {
+        return playerDto.getProfession().equals(filter.getProfession());
       }
     };
   }
@@ -191,6 +251,52 @@ public class PlayersController {
       return filterByBirthdayAfter(playerDto, filter.getBirthdayAfter()) &&
           filterByBirthdayBefore(playerDto, filter.getBirthdayBefore());
     };
+  }
+
+  private Predicate<PlayerDto> byExperience(PlayerFilter filter) {
+    return playerDto -> {
+      return filterByExperienceAfter(playerDto, filter.getExperienceAfter()) &&
+          filterByExperienceBefore(playerDto, filter.getExperienceBefore());
+    };
+  }
+
+  private Predicate<PlayerDto> byLevel(PlayerFilter filter) {
+    return playerDto -> {
+      return filterByLevelAfter(playerDto, filter.getLevelAfter()) &&
+          filterByLevelBefore(playerDto, filter.getLevelBefore());
+    };
+  }
+
+  private boolean filterByLevelAfter(PlayerDto playerDto, Integer levelAfter) {
+    if (levelAfter == null) {
+      return true;
+    } else {
+      return playerDto.getLevel() >= levelAfter;
+    }
+  }
+
+  private boolean filterByLevelBefore(PlayerDto playerDto, Integer levelBefore) {
+    if (levelBefore == null) {
+      return true;
+    } else {
+      return playerDto.getLevel() <= levelBefore;
+    }
+  }
+
+  private boolean filterByExperienceAfter(PlayerDto playerDto, Integer experienceAfter) {
+    if (experienceAfter == null) {
+      return true;
+    } else {
+      return playerDto.getExperience() >= experienceAfter;
+    }
+  }
+
+  private boolean filterByExperienceBefore(PlayerDto playerDto, Integer experienceBefore) {
+    if (experienceBefore == null) {
+      return true;
+    } else {
+      return playerDto.getExperience() <= experienceBefore;
+    }
   }
 
   private boolean filterByBirthdayAfter(PlayerDto playerDto, Long birthdayAfter) {
