@@ -1,5 +1,6 @@
 package com.game.controller;
 
+import com.game.entity.Profession;
 import com.game.entity.Race;
 
 public class PlayerFilter {
@@ -10,6 +11,12 @@ public class PlayerFilter {
   public static final String BIRTHDAY_AFTER = "after";
   public static final String BIRTHDAY_BEFORE = "before";
   public static final String RACE = "race";
+  public static final String PROFESSION = "profession";
+  public static final String EXPERIENCE_AFTER = "experience after";
+  public static final String EXPERIENCE_BEFORE = "experience before";
+  public static final String LEVEL_AFTER = "level after";
+  public static final String LEVEL_BEFORE = "level before";
+
 
   private String name;
   private String title;
@@ -17,6 +24,11 @@ public class PlayerFilter {
   private Long birthdayAfter;
   private Long birthdayBefore;
   private Race race;
+  private Profession profession;
+  private Integer experienceAfter;
+  private Integer experienceBefore;
+  private Integer levelAfter;
+  private Integer levelBefore;
 
   public Boolean isBanned() {
     return banned;
@@ -64,5 +76,45 @@ public class PlayerFilter {
 
   public void setRace(Race race) {
     this.race = race;
+  }
+
+  public Profession getProfession() {
+    return profession;
+  }
+
+  public void setProfession(Profession profession) {
+    this.profession = profession;
+  }
+
+  public Integer getExperienceAfter() {
+    return experienceAfter;
+  }
+
+  public void setExperienceAfter(Integer experienceAfter) {
+    this.experienceAfter = experienceAfter;
+  }
+
+  public Integer getExperienceBefore() {
+    return experienceBefore;
+  }
+
+  public void setExperienceBefore(Integer experienceBefore) {
+    this.experienceBefore = experienceBefore;
+  }
+
+  public Integer getLevelAfter() {
+    return levelAfter;
+  }
+
+  public void setLevelAfter(Integer levelAfter) {
+    this.levelAfter = levelAfter;
+  }
+
+  public Integer getLevelBefore() {
+    return levelBefore;
+  }
+
+  public void setLevelBefore(Integer levelBefore) {
+    this.levelBefore = levelBefore;
   }
 }
