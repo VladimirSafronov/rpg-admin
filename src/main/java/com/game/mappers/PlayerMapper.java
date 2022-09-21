@@ -2,6 +2,7 @@ package com.game.mappers;
 
 import com.game.dto.PlayerDto;
 import com.game.entity.PlayerEntity;
+import java.sql.Date;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class PlayerMapper {
         playerDto.setName(entity.getName());
         playerDto.setRace(entity.getRace());
         playerDto.setProfession(entity.getProfession());
-        playerDto.setBirthday(entity.getBirthday());
+        playerDto.setBirthday(entity.getBirthday().getTime());
         playerDto.setBanned(entity.isBanned());
         playerDto.setExperience(entity.getExperience());
         playerDto.setLevel(entity.getLevel());
@@ -52,7 +53,7 @@ public class PlayerMapper {
         sourceEntity.setRace(playerDto.getRace());
         sourceEntity.setProfession(playerDto.getProfession());
         sourceEntity.setExperience(playerDto.getExperience());
-        sourceEntity.setBirthday(playerDto.getBirthday());
+        sourceEntity.setBirthday(new Date(playerDto.getBirthday()));
         sourceEntity.setBanned(playerDto.isBanned());
     }
 }

@@ -25,10 +25,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PlayersController {
 
   private final PlayerService playerService;
+  private final Paginator paginator;
 
   @Autowired
-  public PlayersController(PlayerService playerService) {
+  public PlayersController(
+      PlayerService playerService,
+      Paginator paginator) {
     this.playerService = playerService;
+    this.paginator = paginator;
   }
 
   /**
@@ -39,7 +43,9 @@ public class PlayersController {
   @GetMapping
   public ResponseEntity<List<PlayerDto>> getPlayers(
       @RequestParam Map<String, String> queryParams,
-      @RequestParam(name = "order", required = false) String order
+      @RequestParam(name = "order", required = false) String order,
+      @RequestParam(name = "pageNumber", required = false) Integer pageNumber,
+      @RequestParam(name = "pageSize", required = false) Integer pageSize
   ) {
     // Создать фильтр
     PlayerFilter filter = createFilter(queryParams);
@@ -48,7 +54,8 @@ public class PlayersController {
     // Отфильтровать список игроков
     List<PlayerDto> filteredPlayers = filterPlayers(filter, players);
     sortPlayers(filteredPlayers, order);
-    return ResponseEntity.ok(filteredPlayers);
+    List<PlayerDto> filteredSortedPaginatedPlayers = paginator.getPageData(filteredPlayers, pageNumber, pageSize);
+    return ResponseEntity.ok(filteredSortedPaginatedPlayers);
   }
 
   private void sortPlayers(List<PlayerDto> playerDtos, String order) {
@@ -101,8 +108,8 @@ public class PlayersController {
 
   private Comparator<PlayerDto> sortByBirthday() {
     return (player1, player2) -> {
-      Long player1Birthday = player1.getBirthday().getTime();
-      Long player2Birthday = player2.getBirthday().getTime();
+      Long player1Birthday = player1.getBirthday();
+      Long player2Birthday = player2.getBirthday();
       return Long.compare(player1Birthday, player2Birthday);
     };
   }
@@ -303,7 +310,7 @@ public class PlayersController {
     if (birthdayAfter == null) {
       return true;
     } else {
-      return playerDto.getBirthday().getTime() >= birthdayAfter;
+      return playerDto.getBirthday() >= birthdayAfter;
     }
   }
 
@@ -311,7 +318,7 @@ public class PlayersController {
     if (birthdayBefore == null) {
       return true;
     } else {
-      return playerDto.getBirthday().getTime() <= birthdayBefore;
+      return playerDto.getBirthday() <= birthdayBefore;
     }
   }
 
@@ -344,8 +351,15 @@ public class PlayersController {
   public ResponseEntity<PlayerDto> createPlayer(
       @RequestBody PlayerDto player
   ) {
+    validateDto(player);
     PlayerDto result = playerService.createPlayer(player);
     return ResponseEntity.ok(result);
+  }
+
+  private void validateDto(PlayerDto player) {
+    if (player.getBirthday() <= 0) {
+      throw new IllegalArgumentException("Birthday can't be less zero");
+    }
   }
 
   /**
@@ -366,11 +380,18 @@ public class PlayersController {
    * @return list of players
    */
   @GetMapping(value = "/count")
-  public ResponseEntity<Integer> getPlayersCount() {
-    // Debug
-    System.out.println(">> getPlayersCount()");
+  public ResponseEntity<Integer> getPlayersCount(
+      @RequestParam Map<String, String> queryParams
+  ) {
 
-    int count = playerService.getAllPlayersCount();
-    return ResponseEntity.ok(count);
+    // Создать фильтр
+    PlayerFilter filter = createFilter(queryParams);
+    // Получить список игроков из нашего сервиса
+    List<PlayerDto> players = playerService.getAllPlayers();
+    // Отфильтровать список игроков
+    List<PlayerDto> filteredPlayers = filterPlayers(filter, players);
+
+    return ResponseEntity.ok(filteredPlayers.size());
+
   }
 }
