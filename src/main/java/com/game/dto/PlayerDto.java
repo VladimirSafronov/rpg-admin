@@ -3,15 +3,13 @@ package com.game.dto;
 import com.game.entity.Profession;
 import com.game.entity.Race;
 
-import java.sql.Date;
-
 public class PlayerDto {
-    private long id;
+    private Long id;
     private String name;
     private Race race;
     private Profession profession;
-    private Date birthday;
-    private boolean banned;
+    private Long birthday;
+    private Boolean banned;
     private Integer experience;
     private Integer level;
     private Integer untilNextLevel;
@@ -21,7 +19,7 @@ public class PlayerDto {
         // do nothing
     }
 
-    public PlayerDto(long id, String name, Race race, Profession profession, Date birthday, boolean banned,
+    public PlayerDto(long id, String name, Race race, Profession profession, Long birthday, boolean banned,
                      Integer experience, Integer level, Integer untilNextLevel) {
         this.id = id;
         this.name = name;
@@ -32,6 +30,18 @@ public class PlayerDto {
         this.experience = experience;
         this.level = level;
         this.untilNextLevel = untilNextLevel;
+    }
+
+    public boolean isEmpty() {
+        return id == null &&
+            name == null &&
+            race == null &&
+            profession == null &&
+            birthday == null &&
+            banned == null &&
+            experience == null &&
+            level == null &&
+            untilNextLevel == null;
     }
 
     public long getId() {
@@ -66,15 +76,15 @@ public class PlayerDto {
         this.profession = profession;
     }
 
-    public Date getBirthday() {
+    public Long getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(Date birthday) {
+    public void setBirthday(Long birthday) {
         this.birthday = birthday;
     }
 
-    public boolean isBanned() {
+    public Boolean isBanned() {
         return banned;
     }
 

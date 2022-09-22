@@ -2,6 +2,7 @@ package com.game.mappers;
 
 import com.game.dto.PlayerDto;
 import com.game.entity.PlayerEntity;
+import java.sql.Date;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class PlayerMapper {
         playerDto.setName(entity.getName());
         playerDto.setRace(entity.getRace());
         playerDto.setProfession(entity.getProfession());
-        playerDto.setBirthday(entity.getBirthday());
+        playerDto.setBirthday(entity.getBirthday().getTime());
         playerDto.setBanned(entity.isBanned());
         playerDto.setExperience(entity.getExperience());
         playerDto.setLevel(entity.getLevel());
@@ -43,7 +44,34 @@ public class PlayerMapper {
     }
 
     public void mapDtoToSourceEntity(PlayerDto playerDto, PlayerEntity sourceEntity) {
-        mapDtoToEntity(playerDto, sourceEntity);
+
+        if (playerDto.getExperience() != null) {
+            sourceEntity.setExperience(playerDto.getExperience());
+        }
+
+        if (playerDto.getProfession() != null) {
+            sourceEntity.setProfession(playerDto.getProfession());
+        }
+
+        if (playerDto.getRace() != null) {
+            sourceEntity.setRace(playerDto.getRace());
+        }
+
+        if (playerDto.getName() != null) {
+            sourceEntity.setName(playerDto.getName());
+        }
+
+        if (playerDto.getTitle() != null) {
+            sourceEntity.setTitle(playerDto.getTitle());
+        }
+
+        if (playerDto.isBanned() != null) {
+            sourceEntity.setBanned(playerDto.isBanned());
+        }
+
+        if (playerDto.getBirthday() != null) {
+            sourceEntity.setBirthday(new Date(playerDto.getBirthday()));
+        }
     }
 
     private void mapDtoToEntity(PlayerDto playerDto, PlayerEntity sourceEntity) {
@@ -52,7 +80,7 @@ public class PlayerMapper {
         sourceEntity.setRace(playerDto.getRace());
         sourceEntity.setProfession(playerDto.getProfession());
         sourceEntity.setExperience(playerDto.getExperience());
-        sourceEntity.setBirthday(playerDto.getBirthday());
         sourceEntity.setBanned(playerDto.isBanned());
+        sourceEntity.setBirthday(new Date(playerDto.getBirthday()));
     }
 }

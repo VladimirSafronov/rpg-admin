@@ -6,7 +6,9 @@ import com.game.mappers.PlayerMapper;
 import com.game.repository.PlayerRepository;
 import com.game.service.exceptions.PlayerNotFoundException;
 import java.util.Optional;
+import javax.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -28,8 +30,12 @@ public class PlayerService {
 
     @Transactional
     public PlayerDto getPlayer(long playerId) {
-        PlayerEntity playerEntity = playerRepository.getOne(playerId);
-        return playerMapper.mapEntityToDto(playerEntity);
+        try {
+            PlayerEntity playerEntity = playerRepository.getOne(playerId);
+            return playerMapper.mapEntityToDto(playerEntity);
+        } catch (EntityNotFoundException e) {
+            throw new PlayerNotFoundException(String.valueOf(playerId));
+        }
     }
 
     @Transactional
@@ -54,7 +60,11 @@ public class PlayerService {
 
     @Transactional
     public void deletePlayer(long playerId) {
-        playerRepository.deleteById(playerId);
+        try {
+            playerRepository.deleteById(playerId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new PlayerNotFoundException(String.valueOf(playerId));
+        }
     }
 
     @Transactional
@@ -69,7 +79,14 @@ public class PlayerService {
     }
 
     private void setupPlayerLevelToEntity(final PlayerDto playerDto, PlayerEntity playerEntity) {
-        int experience = playerDto.getExperience();
+
+        int experience;
+        if (playerDto.getExperience() != null) {
+            experience = playerDto.getExperience();
+        } else {
+            experience = playerEntity.getExperience();
+        }
+
         int level = calculateLevel(experience);
         int untilNextLevel = calculateUntilNextLevel(level, experience);
         playerEntity.setLevel(level);

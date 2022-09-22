@@ -12,10 +12,10 @@ public class PlayerFilter {
   public static final String BIRTHDAY_BEFORE = "before";
   public static final String RACE = "race";
   public static final String PROFESSION = "profession";
-  public static final String EXPERIENCE_AFTER = "experience after";
-  public static final String EXPERIENCE_BEFORE = "experience before";
-  public static final String LEVEL_AFTER = "level after";
-  public static final String LEVEL_BEFORE = "level before";
+  public static final String EXPERIENCE_AFTER = "minExperience";
+  public static final String EXPERIENCE_BEFORE = "maxExperience";
+  public static final String LEVEL_AFTER = "minLevel";
+  public static final String LEVEL_BEFORE = "maxLevel";
 
 
   private String name;

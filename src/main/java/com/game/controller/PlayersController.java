@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,10 +26,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PlayersController {
 
   private final PlayerService playerService;
+  private final Paginator paginator;
 
   @Autowired
-  public PlayersController(PlayerService playerService) {
+  public PlayersController(
+      PlayerService playerService,
+      Paginator paginator) {
     this.playerService = playerService;
+    this.paginator = paginator;
   }
 
   /**
@@ -39,7 +44,9 @@ public class PlayersController {
   @GetMapping
   public ResponseEntity<List<PlayerDto>> getPlayers(
       @RequestParam Map<String, String> queryParams,
-      @RequestParam(name = "order", required = false) String order
+      @RequestParam(name = "order", required = false) String order,
+      @RequestParam(name = "pageNumber", required = false) Integer pageNumber,
+      @RequestParam(name = "pageSize", required = false) Integer pageSize
   ) {
     // Создать фильтр
     PlayerFilter filter = createFilter(queryParams);
@@ -48,7 +55,8 @@ public class PlayersController {
     // Отфильтровать список игроков
     List<PlayerDto> filteredPlayers = filterPlayers(filter, players);
     sortPlayers(filteredPlayers, order);
-    return ResponseEntity.ok(filteredPlayers);
+    List<PlayerDto> filteredSortedPaginatedPlayers = paginator.getPageData(filteredPlayers, pageNumber, pageSize);
+    return ResponseEntity.ok(filteredSortedPaginatedPlayers);
   }
 
   private void sortPlayers(List<PlayerDto> playerDtos, String order) {
@@ -101,8 +109,8 @@ public class PlayersController {
 
   private Comparator<PlayerDto> sortByBirthday() {
     return (player1, player2) -> {
-      Long player1Birthday = player1.getBirthday().getTime();
-      Long player2Birthday = player2.getBirthday().getTime();
+      Long player1Birthday = player1.getBirthday();
+      Long player2Birthday = player2.getBirthday();
       return Long.compare(player1Birthday, player2Birthday);
     };
   }
@@ -303,7 +311,7 @@ public class PlayersController {
     if (birthdayAfter == null) {
       return true;
     } else {
-      return playerDto.getBirthday().getTime() >= birthdayAfter;
+      return playerDto.getBirthday() >= birthdayAfter;
     }
   }
 
@@ -311,7 +319,7 @@ public class PlayersController {
     if (birthdayBefore == null) {
       return true;
     } else {
-      return playerDto.getBirthday().getTime() <= birthdayBefore;
+      return playerDto.getBirthday() <= birthdayBefore;
     }
   }
 
@@ -322,7 +330,11 @@ public class PlayersController {
    */
   @GetMapping(value = "/{playerId}")
   public ResponseEntity<PlayerDto> getPlayer(@PathVariable long playerId) {
-    System.out.println(">> getPlayer(): playerId = " + playerId);
+
+    if (playerId <= 0) {
+      throw new IllegalArgumentException("ID can't be zero");
+    }
+
     PlayerDto player = playerService.getPlayer(playerId);
     return ResponseEntity.ok(player);
   }
@@ -335,7 +347,19 @@ public class PlayersController {
   @PostMapping(value = "/{playerId}")
   public ResponseEntity<PlayerDto> changePlayer(
       @PathVariable long playerId, @RequestBody PlayerDto player) {
+
+    if (playerId <= 0) {
+      throw new IllegalArgumentException("ID can't be zero");
+    }
+
+    if (player.isEmpty()) {
+      return ResponseEntity.ok(playerService.getPlayer(playerId));
+    }
+
     player.setId(playerId);
+
+    validateUpdateDto(player);
+
     PlayerDto updatedPlayer = playerService.changePlayer(player);
     return ResponseEntity.ok(updatedPlayer);
   }
@@ -344,8 +368,44 @@ public class PlayersController {
   public ResponseEntity<PlayerDto> createPlayer(
       @RequestBody PlayerDto player
   ) {
+    validateDto(player);
     PlayerDto result = playerService.createPlayer(player);
     return ResponseEntity.ok(result);
+  }
+
+  private void validateDto(PlayerDto player) {
+
+    if (player.isEmpty()) {
+      throw new IllegalArgumentException("PlayerDTO can't be empty");
+    }
+    if (player.getBirthday() < 94667400000L || player.getBirthday() > 3250366919900L) {
+      throw new IllegalArgumentException("Birthday can't be less zero");
+    }
+    if (player.getTitle().length() > 30) {
+      throw new IllegalArgumentException("Title is too big");
+    }
+    if (player.getName().length() > 12) {
+      throw new IllegalArgumentException("Name is too big");
+    }
+    if (player.getExperience() < 0 || player.getExperience() > 10_000_000) {
+      throw new IllegalArgumentException("Bad experience");
+    }
+  }
+
+  private void validateUpdateDto(PlayerDto player) {
+
+    if (player.getBirthday() != null && (player.getBirthday() < 94667400000L || player.getBirthday() > 3250366919900L)) {
+      throw new IllegalArgumentException("Birthday can't be less zero");
+    }
+//    if (player.getTitle().length() > 30) {
+//      throw new IllegalArgumentException("Title is too big");
+//    }
+//    if (player.getName().length() > 12) {
+//      throw new IllegalArgumentException("Name is too big");
+//    }
+    if (player.getExperience() != null && (player.getExperience() < 0 || player.getExperience() > 10_000_000)) {
+      throw new IllegalArgumentException("Bad experience");
+    }
   }
 
   /**
@@ -356,6 +416,11 @@ public class PlayersController {
    */
   @DeleteMapping(value = "{playerId}")
   public ResponseEntity<String> deletePlayer(@PathVariable long playerId) {
+
+    if (playerId <= 0) {
+      throw new IllegalArgumentException("ID can't be zero");
+    }
+
     playerService.deletePlayer(playerId);
     return ResponseEntity.ok(String.format("Player with id %d deleted!", playerId));
   }
@@ -366,11 +431,18 @@ public class PlayersController {
    * @return list of players
    */
   @GetMapping(value = "/count")
-  public ResponseEntity<Integer> getPlayersCount() {
-    // Debug
-    System.out.println(">> getPlayersCount()");
+  public ResponseEntity<Integer> getPlayersCount(
+      @RequestParam Map<String, String> queryParams
+  ) {
 
-    int count = playerService.getAllPlayersCount();
-    return ResponseEntity.ok(count);
+    // Создать фильтр
+    PlayerFilter filter = createFilter(queryParams);
+    // Получить список игроков из нашего сервиса
+    List<PlayerDto> players = playerService.getAllPlayers();
+    // Отфильтровать список игроков
+    List<PlayerDto> filteredPlayers = filterPlayers(filter, players);
+
+    return ResponseEntity.ok(filteredPlayers.size());
+
   }
 }
