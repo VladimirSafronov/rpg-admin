@@ -4,12 +4,12 @@ import com.game.entity.Profession;
 import com.game.entity.Race;
 
 public class PlayerDto {
-    private long id;
+    private Long id;
     private String name;
     private Race race;
     private Profession profession;
     private Long birthday;
-    private boolean banned;
+    private Boolean banned;
     private Integer experience;
     private Integer level;
     private Integer untilNextLevel;
@@ -30,6 +30,18 @@ public class PlayerDto {
         this.experience = experience;
         this.level = level;
         this.untilNextLevel = untilNextLevel;
+    }
+
+    public boolean isEmpty() {
+        return id == null &&
+            name == null &&
+            race == null &&
+            profession == null &&
+            birthday == null &&
+            banned == null &&
+            experience == null &&
+            level == null &&
+            untilNextLevel == null;
     }
 
     public long getId() {
@@ -72,7 +84,7 @@ public class PlayerDto {
         this.birthday = birthday;
     }
 
-    public boolean isBanned() {
+    public Boolean isBanned() {
         return banned;
     }
 
